@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -139,7 +141,7 @@ public class SellerFormController implements Initializable {
 		txtEmail.setText(entity.getEmail());
 		Locale.setDefault(Locale.US);
 		txtSalario.setText(String.format("%.2f", entity.getBaseSalary()));
-
+		
 		if (entity.getBirthDate() != null) {
 			dpDataNasc.setValue(LocalDate.ofInstant(entity.getBirthDate().toInstant(), ZoneId.systemDefault()));
 		}
@@ -168,6 +170,25 @@ public class SellerFormController implements Initializable {
 		}
 		obj.setName(txtNome.getText());
 
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addError("email", "Informação obrigatória.");
+		}
+		obj.setEmail(txtEmail.getText());
+
+		if (dpDataNasc.getValue() == null) {
+			exception.addError("dataNascimento", "Informação obrigatória.");
+		} else {
+			Instant instant = Instant.from(dpDataNasc.getValue().atStartOfDay(ZoneId.systemDefault()));
+			obj.setBirthDate(Date.from(instant));
+		} 
+
+		if (txtSalario.getText() == null || txtSalario.getText().trim().equals("")) {
+			exception.addError("salario", "Informação obrigatória.");
+		}
+		obj.setBaseSalary(Utils.tryParseToDouble(txtSalario.getText()));
+
+		obj.setDepartment(cbDepartmentos.getValue());
+		
 		if (exception.getErrors().size() > 0) {
 			throw exception;
 		}
@@ -182,9 +203,10 @@ public class SellerFormController implements Initializable {
 	private void setErrorMessages(Map<String, String> errors) {
 		Set<String> fields = errors.keySet();
 
-		if (fields.contains("nome")) {
-			lblErrorNome.setText(errors.get("nome"));
-		}
+		lblErrorNome.setText(fields.contains("nome") ? errors.get("nome") : "");
+		lblErrorEmail.setText(fields.contains("email") ? errors.get("email") : "");
+		lblErrorDataNasc.setText(fields.contains("dataNascimento") ? errors.get("dataNascimento") : "");
+		lblErrorSalario.setText(fields.contains("salario") ? errors.get("salario") : "");
 	}
 
 	public void loadAssociatedObjects() {
